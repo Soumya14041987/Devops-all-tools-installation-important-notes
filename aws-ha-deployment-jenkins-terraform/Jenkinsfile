@@ -18,7 +18,7 @@ pipeline {
                     checkout([
                         $class: 'GitSCM',
                         branches: [[name: '*/main']],
-                        userRemoteConfigs: [[url: 'https://github.com/mathesh-me/aws-ha-deployment-jenkins-terraform.git']]
+                        userRemoteConfigs: [[url:'https://github.com/Soumya14041987/cicd-project-jenkins-terraform-webhook.git']]
                     ])
                 }
             }
@@ -47,8 +47,8 @@ pipeline {
             }
             steps {
                 script {
-                        sh 'export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}'
-                        sh 'export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}'
+                        sh 'export AWS_ACCESS_KEY_ID=${env.AWS_ACCESS_KEY_ID}'
+                        sh 'export AWS_SECRET_ACCESS_KEY=${env.AWS_SECRET_ACCESS_KEY}'
                         // Deploy resources using Terraform
                         sh 'terraform apply -auto-approve tfplan'
                     
@@ -64,8 +64,8 @@ pipeline {
             }
             steps {
                 script {
-                        sh 'export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}'
-                        sh 'export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}'
+                        sh 'export AWS_ACCESS_KEY_ID=${env.AWS_ACCESS_KEY_ID}'
+                        sh 'export AWS_SECRET_ACCESS_KEY=${env.AWS_SECRET_ACCESS_KEY}'
                         // Destroy resources using Terraform with the saved plan
                         sh 'terraform destroy -auto-approve'
                 }
