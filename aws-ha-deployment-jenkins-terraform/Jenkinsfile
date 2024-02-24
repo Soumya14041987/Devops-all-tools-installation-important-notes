@@ -32,9 +32,11 @@ pipeline {
             }
             steps {
                 script {
-                    // Conditional execution of init and plan stages only when deploying
-                    sh 'terraform init'
-                    sh 'terraform plan -out=tfplan'
+                    dir('aws-ha-deployment-jenkins-terraform') {
+                        // Conditional execution of init and plan stages only when deploying
+                        sh 'terraform init -reconfigure || echo "Terraform init failed" && exit 1'
+                        sh 'terraform plan -out=tfplan || echo "Terraform plan failed" && exit 1'
+                    }
                 }
             }
         }
@@ -47,11 +49,10 @@ pipeline {
             }
             steps {
                 script {
-                        sh 'export AWS_ACCESS_KEY_ID=${env.AWS_ACCESS_KEY_ID}'
-                        sh 'export AWS_SECRET_ACCESS_KEY=${env.AWS_SECRET_ACCESS_KEY}'
+                    dir('aws-ha-deployment-jenkins-terraform') {
                         // Deploy resources using Terraform
-                        sh 'terraform apply -auto-approve tfplan'
-                    
+                        sh 'AWS_ACCESS_KEY_ID=${env.AWS_ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${env.AWS_SECRET_ACCESS_KEY} terraform apply -auto-approve tfplan || echo "Terraform apply failed" && exit 1'
+                    }
                 }
             }
         }
@@ -64,10 +65,10 @@ pipeline {
             }
             steps {
                 script {
-                        sh 'export AWS_ACCESS_KEY_ID=${env.AWS_ACCESS_KEY_ID}'
-                        sh 'export AWS_SECRET_ACCESS_KEY=${env.AWS_SECRET_ACCESS_KEY}'
+                    dir('aws-ha-deployment-jenkins-terraform') {
                         // Destroy resources using Terraform with the saved plan
-                        sh 'terraform destroy -auto-approve'
+                        sh 'AWS_ACCESS_KEY_ID=${env.AWS_ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${env.AWS_SECRET_ACCESS_KEY} terraform destroy -auto-approve || echo "Terraform destroy failed" && exit 1'
+                    }
                 }
             }
         }
@@ -94,3 +95,4 @@ pipeline {
         }
     }
 }
+
