@@ -1,6 +1,6 @@
 terraform {
   backend "s3" {
-    bucket = "mathesh-bucket-1947"
+    bucket = "one-tier-architecture-app"
     key    = "terraform/terraform.tfstate"
     region = "us-east-1"
   }
