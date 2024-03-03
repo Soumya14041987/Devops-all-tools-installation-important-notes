@@ -1,0 +1,102 @@
+# Step 1: Download and install Prometheus on your monitoring system
+
+wget https://github.com/prometheus/prometheus/releases/download/v2.30.3/prometheus-2.30.3.linux-amd64.tar.gz
+
+# Step 2 : Unzip the installation zip file 
+
+tar -xvzf prometheus-2.30.3.linux-amd64.tar.gz
+
+# Step 3 : Move the Prometheus to /opt directory 
+
+sudo mv prometheus-2.30.3.linux-amd64 /opt/prometheus
+
+
+# Step 4: Configure Prometheus to run as a service
+
+sudo nano /etc/systemd/system/prometheus.service
+
+# Add the following content:
+[Unit]
+Description=Prometheus
+After=network.target
+
+[Service]
+ExecStart=/opt/prometheus/prometheus --config.file=/opt/prometheus/prometheus.yml
+User=prometheus
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+# Step 5: Install Node Exporter on all clients
+ wget https://github.com/prometheus/node_exporter/releases/download/v1.3.1/node_exporter-1.3.1.linux-amd64.tar.gz
+# Step 6:Extract the downloaded tar file 
+tar xvf node_exporter-1.3.1.linux-amd64.tar.gz
+
+# Step 7: Move the binary file node_exporter to /usr/local/bin
+cd node_exporter-1.3.1.linux-amd64
+sudo cp node_exporter /usr/local/bin
+
+# Step 8: Clean up the extracted directory
+
+cd ..
+rm -rf ./node_exporter-1.3.1.linux-amd64
+
+# Step 9: As a best practice, create a dedicated user for Node Exporter
+sudo useradd --no-create-home --shell /bin/false node_exporter
+
+# Step 10: Set the owner of the binary
+sudo chown node_exporter:node_exporter /usr/local/bin/node_exporter
+
+# Step 11: Create the service file
+sudo nano /etc/systemd/system/node_exporter.service
+
+Paste the following link 
+
+[Unit]
+Description=Node Exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=node_exporter
+ExecStart=/usr/local/bin/node_exporter
+
+[Install]
+WantedBy=default.target
+
+# Step 11: Enable and Start the Service
+
+sudo systemctl daemon-reload
+sudo systemctl enable node_exporter
+sudo systemctl start node_exporter
+
+# Step 12: Check if Node Exporter is running
+
+systemctl status node_exporter
+
+# Step 13: Node Exporter exposes metrics at
+http://localhost:9100/metrics
+
+# Node Exporter collects hardware and kernel metrics (CPU, memory, etc.) from client nodes
+global:
+  scrape_interval: 15s
+  external_labels:
+    monitor: 'codelab-monitor'
+
+scrape_configs:
+  - job_name: 'prometheus'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['localhost:9090']
+
+# Step 14: Run the following command to start Prometheus with your configuration file
+./prometheus --config.file=prometheus.yml
+
+
+# Step 4: Status check Prometheus
+sudo systemctl status prometheus
+
+#Step 5: Expose Prometheus in web 
+http://localhost:9090/graph
+
